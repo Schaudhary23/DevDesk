@@ -9,18 +9,23 @@ import SwiftUI
 
 struct RepositoryListView: View {
     @ObservedObject var viewModel: RepositoryListViewModel
+    @Environment(\.modelContext)
+        private var modelContext
     var body: some View {
         ZStack {
             List {
                 ForEach(viewModel.repositories) { repo in
                     NavigationLink(repo.name) {
                         RepositoryDetailView(repository: repo)
-                            .environment(viewModel)
+                            .environmentObject(viewModel)
                     }
                 }
             }
             .listStyle(.sidebar)
         }
+        .onAppear(perform: {
+            viewModel.updateModelContext(modelContext)
+        })
         
         if viewModel.isLoading {
             ProgressView()

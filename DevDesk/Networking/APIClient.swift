@@ -22,37 +22,40 @@ final class APIClient: APIClientProtocol {
     
     func fetch<T>(endpoint: Endpoint) async throws -> T where T : Decodable {
         
+        do {
+            var urlReq = try makeURLRequest(endpoint: endpoint)
+            let (data, response) = try await session.data(for: urlReq)
+            print("Network call finished")
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw NetworkError.invalidResponse
+            }
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                throw NetworkError.serverError(httpResponse.statusCode)
+            }
+            let decodedData = try JSONDecoder().decode(T.self, from: data)
+            return decodedData
+        } catch {
+            throw NetworkError.decodingFailed
+        }
+    }
+    
+    func makeURLRequest(endpoint: Endpoint) throws -> URLRequest {
         var components = URLComponents()
         components.scheme = environment.scheme
         components.host = environment.host
         components.path = endpoint.path
-        components.queryItems = endpoint.queryItems
+        if let items = endpoint.queryItems, !items.isEmpty {
+            components.queryItems = items
+        }
         
         
         guard let url = components.url else {
             throw NetworkError.inavlidURL
         }
-        
         var urlReq = URLRequest(url: url)
         urlReq.httpMethod = "GET"
-        
-        
-        let (data, response) = try await session.data(for: urlReq)
-        print("Network call finished")
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw NetworkError.invalidResponse
-        }
-        
-        guard (200...299).contains(httpResponse.statusCode) else {
-            throw NetworkError.serverError(httpResponse.statusCode)
-        }
-        
-        do {
-            let data = try JSONDecoder().decode(T.self, from: data)
-            return data
-        } catch {
-            throw NetworkError.decodingFailed
-        }
+        return urlReq
     }
 }

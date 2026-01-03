@@ -10,10 +10,10 @@ import SwiftData
 
 @main
 struct DevDeskApp: App {
-    @StateObject private var viewModel = RepositoryListViewModel()
+    @StateObject private var viewModel = RepositoryListViewModel(apiclient: APIClient(environment: .github))
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            RepositoryEntity.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
