@@ -34,11 +34,17 @@ final class RepositoryListViewModel: ObservableObject {
             let entities = try modelContext.fetch(fetchDescriptor)
             NSLog("Entities fetched from local")
             repositories = entities.map({ repo in
-                Repository(id: repo.id, name: repo.name, description: repo.repoDescription, language: repo.language, stars: repo.stars)
+                Repository(
+                    id: repo.id,
+                    name: repo.name,
+                    description: repo.repoDescription,
+                    language: repo.language,
+                    stars: repo.stars
+                )
             })
             selectedRepository = repositories.first
         } catch {
-            NSLog("❌ SwiftData fetch error: \(error)")
+            debugPrint("❌ SwiftData fetch error: \(error)")
         }
     }
     
@@ -47,14 +53,19 @@ final class RepositoryListViewModel: ObservableObject {
             guard let modelContext else { return }
             isLoading = true
             errorMessage = nil
-            let endpoint = Endpoint(path: "/users/apple/repos", queryItems: nil)
             do {
-                let repoData: [GitHubRepositoryDTO] = try await apiclient.fetch(endpoint: endpoint)
-                let repos = repoData.map { $0.toDomain()}
-                try modelContext.delete(model: RepositoryEntity.self)
-                for repo in repos {
-                    modelContext.insert(RepositoryEntity(from: repo))
-                }
+                let dto: [GitHubRepositoryDTO] =
+                try await apiclient.fetch(
+                    endpoint: Endpoint(
+                        path: "/users/apple/repos", queryItems: nil
+                    )
+                )
+                let repos = dto.map { $0.toDomain()}
+                let existing = try modelContext.fetch(
+                    FetchDescriptor<RepositoryEntity>()
+                )
+                existing.forEach({modelContext.delete($0)})
+                repos.forEach { modelContext.insert(RepositoryEntity(from: $0)) }
                 repositories = repos
                 selectedRepository = repos.first
                 isLoading = false
@@ -65,4 +76,23 @@ final class RepositoryListViewModel: ObservableObject {
         }
     }
     
+    func refresh() {
+        selectedRepository = nil
+        loadRepositories()
+    }
+    
+    func clearCache() {
+        guard let modelContext = modelContext else { return }
+        do {
+            selectedRepository = nil
+            repositories = []
+            let entities = try modelContext.fetch(
+                FetchDescriptor<RepositoryEntity>()
+            )
+            entities.forEach { modelContext.delete($0) }
+        } catch {
+            debugPrint("Error in clearCache() ----: \(error.localizedDescription)")
+            errorMessage = error.localizedDescription
+        }
+    }
 }

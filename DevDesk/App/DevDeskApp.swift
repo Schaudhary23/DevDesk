@@ -10,29 +10,14 @@ import SwiftData
 
 @main
 struct DevDeskApp: App {
-    @StateObject private var viewModel = RepositoryListViewModel(apiclient: APIClient(environment: .github))
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            RepositoryEntity.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
     var body: some Scene {
-        WindowGroup {
-            NavigationSplitView {
-                RepositoryListView(viewModel: viewModel)
-            } detail: {
-                Text("Please Select Repository")
-            }
-
+        WindowGroup("Repositories") {
+            RootView()
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(for: RepositoryEntity.self)
+        .windowToolbarStyle(.unified)
+        .commands {
+            DevDeskCommands()
+        }
     }
 }

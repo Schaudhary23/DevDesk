@@ -8,33 +8,21 @@
 import SwiftUI
 
 struct RepositoryDetailView: View {
-    @EnvironmentObject var viewModel: RepositoryListViewModel
-    let repository: Repository?
+    let repository: Repository
     var body: some View {
-        Group {
-            if let error = self.viewModel.errorMessage {
-                Text(error)
-                    .foregroundStyle(.red)
-            }
-            if let repo = repository {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(repo.name)
-                        .font(.largeTitle)
-                    
-                    Text(repo.description ?? "No description")
-                        .foregroundStyle(.secondary)
-                    
-                    HStack {
-                        Text("⭐️ \(repo.stars)")
-                        Text(repo.language ?? "Unknown")
-                    }
-                }
-                .padding()
-            } else {
-                Text("Select a repository")
-                    .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 12) {
+            Text(repository.name)
+                .font(.largeTitle)
+            
+            Text(repository.description ?? "No description")
+                .foregroundStyle(.secondary)
+            
+            HStack {
+                Text("⭐️ \(repository.stars)")
+                Text(repository.language ?? "Unknown")
             }
         }
+        .padding()
     }
 }
 
