@@ -10,17 +10,24 @@ import SwiftUI
 struct RepositoryListView: View {
     @ObservedObject var viewModel: RepositoryListViewModel
     var body: some View {
-        List {
-            ForEach(viewModel.repositories) { repo in
-                NavigationLink(repo.name) {
-                    RepositoryDetailView(repository: repo)
+        ZStack {
+            List {
+                ForEach(viewModel.repositories) { repo in
+                    NavigationLink(repo.name) {
+                        RepositoryDetailView(repository: repo)
+                            .environment(viewModel)
+                    }
                 }
             }
+            .listStyle(.sidebar)
         }
-        .listStyle(.sidebar)
+        
+        if viewModel.isLoading {
+            ProgressView()
+        }
     }
 }
 
 #Preview {
-    RepositoryListView(viewModel: RepositoryListViewModel())
+    RepositoryListView(viewModel: RepositoryListViewModel(apiclient: APIClient(session: URLSession.shared)))
 }

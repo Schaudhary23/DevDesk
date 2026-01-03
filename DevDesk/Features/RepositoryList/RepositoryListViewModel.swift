@@ -8,31 +8,36 @@
 import Foundation
 
 @MainActor
-final class RepositoryListViewModel: ObservableObject{
+final class RepositoryListViewModel: Observable, ObservableObject {
     @Published var repositories: [Repository] = []
     @Published var selectedRepository: Repository?
+    @Published var isLoading = false
+    @Published var errorMessage: String?
     
-    init() {
-        loadMockData()
+    private let apiclient: APIClientProtocol
+    
+    init(apiclient: APIClientProtocol = APIClient()) {
+        self.apiclient = apiclient
+        loadRepositories()
     }
     
-    func loadMockData() {
-        repositories = [
-            Repository(
-                id: 1,
-                name: "SwiftUI-Mac",
-                description: "A macOS SwiftUI example app",
-                language: "Swift",
-                stars: 1200
-            ),
-            Repository(
-                id: 2,
-                name: "NetworkingKit",
-                description: "Clean async/await networking",
-                language: "Swift",
-                stars: 800
-            )
-        ]
+    func loadRepositories() {
+        Task {
+            isLoading = true
+            errorMessage = nil
+            let endpoint = Endpoint(path: "/users/apple/repos", queryItems: nil)
+            do {
+                let repoData: [GitHubRepositoryDTO] = try await apiclient.fetch(endpoint: endpoint)
+                let repos = repoData.map { $0.toDomain()}
+                repositories = repos
+                selectedRepository = repos.first
+                isLoading = false
+            } catch {
+                errorMessage = error.localizedDescription
+                isLoading = false
+            }
+        }
+        
         selectedRepository = repositories.first
     }
     
