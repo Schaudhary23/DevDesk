@@ -43,6 +43,7 @@ final class RepositoryListViewModel: ObservableObject {
                 )
             })
             selectedRepository = repositories.first
+            return
         } catch {
             debugPrint("❌ SwiftData fetch error: \(error)")
         }
@@ -50,6 +51,7 @@ final class RepositoryListViewModel: ObservableObject {
     
     func loadRepositories() {
         Task {
+            loadCachedRepositories()
             guard let modelContext else { return }
             isLoading = true
             errorMessage = nil

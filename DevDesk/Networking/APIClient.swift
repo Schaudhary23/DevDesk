@@ -15,7 +15,7 @@ final class APIClient: APIClientProtocol {
     private let session: URLSession
     private let environment: APIEnvironment
     
-    init(session: URLSession = .shared,environment: APIEnvironment = .github) {
+    init(session: URLSession = .shared, environment: APIEnvironment = .github) {
         self.session = session
         self.environment = environment
     }

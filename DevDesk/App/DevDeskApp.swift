@@ -11,7 +11,7 @@ import SwiftData
 @main
 struct DevDeskApp: App {
     var body: some Scene {
-        WindowGroup("Repositories") {
+        WindowGroup(id: "Repositories") {
             RootView()
         }
         .modelContainer(for: RepositoryEntity.self)
